@@ -2,7 +2,7 @@
 
 Generated: 2026-07-31 00:22 UTC
 
-Same binary + same Laguna-XS-2.1 Q4_K_M. **No /Qwen comparison.**
+Same binary + same Laguna-XS-2.1 Q4_K_M.
 
 | arm | definition |
 |-----|------------|

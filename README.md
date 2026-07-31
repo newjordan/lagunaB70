@@ -22,14 +22,16 @@ export GGML_SYCL_DISABLE_MOE_DUAL_DOWN=1
 export GGML_SYCL_DISABLE_MOE_DUAL_MULTITOKEN=1
 ```
 
-That configuration is the **tip** in the tables below. **Base** is the same binary and GGUF with all major custom fuses disabled.
+That configuration is the **tip** below. **Base** is the same binary and GGUF with all major custom fuses disabled.
 
 ---
 
 ## Results (tip vs base)
 
+Only metrics that **differ**. Matched quality checks (needles, dossier, chat content) are omitted here.
+
 <p align="center">
-  <img src="assets/graphs/04-delta-banner.svg" alt="Delta" width="100%"/>
+  <img src="assets/graphs/04-delta-banner.svg" alt="Tip minus base" width="100%"/>
 </p>
 
 <p align="center">
@@ -41,19 +43,13 @@ That configuration is the **tip** in the tables below. **Base** is the same bina
 | formal pp512 | 1150 | 1187 | +37 |
 | formal tg128 | 109 | 136 | +28 |
 | single-agent tg p50 | 109 | 136 | +27 |
-| needles (100 para) | 3/3 | 3/3 | = |
-| dossier QA | 12/14 | 12/14 | = |
 | held-out tools | 32.6% | 37.0% | +4.4 pp |
 
 <p align="center">
   <img src="assets/graphs/02-prefill-ladder.svg" alt="Prefill ladder" width="100%"/>
 </p>
 
-<p align="center">
-  <img src="assets/graphs/03-quality-gates.svg" alt="Quality gates" width="100%"/>
-</p>
-
-Historical pin (early control baseline): pp ≈ 1139 · tg ≈ 107. Tip vs pin composite ≈ +20% (`decode^0.75 * prefill^0.25`).
+Historical pin: pp ≈ 1139 · tg ≈ 107. Tip vs pin composite ≈ +20% (`decode^0.75 * prefill^0.25`).
 
 Details: [`results/AB_REPORT.md`](results/AB_REPORT.md) · methodology: [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md)
 
@@ -86,16 +82,16 @@ export GGML_SYCL_DISABLE_MOE_DUAL_MULTITOKEN=1
 
 ## Limits
 
-- Agent Bench 69: tool schemas often need >32k context on this model; tip server aborted under long tool load. Base scored 8/100 at c=32768. Not treated as a tip win.
+- Agent Bench 69: tool schemas often need >32k context; tip server aborted under long tool load. Base 8/100 at c=32768.
 - Broken full-fuse prefill “+63%” is excluded (PPL failure).
-- Measurement artifacts here are MIT; llama.cpp and model weights keep their own licenses.
+- Measurement artifacts: MIT. llama.cpp and model weights keep their own licenses.
 
 ---
 
 ## Layout
 
 ```
-assets/graphs/   SVG figures
+assets/graphs/   SVG figures (deltas only)
 results/         A/B metrics and report
 notes/           quality-safe tip note
 docs/            methodology

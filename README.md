@@ -1,8 +1,10 @@
+<p align="center"><img src="assets/laguna_b70_turbo.png" alt="Laguna 2.1 B70" width="46%"></p>
+
 # Laguna B70
 
 **Faster text generation for Laguna-XS-2.1 on the Intel Arc Pro B70. 108 → 136 tok/s.**
 
-Custom llama.cpp SYCL kernels, plus the measurements that back them up.
+Custom llama.cpp SYCL kernels, plus measurements.
 
 > This is kernel work and a serving configuration for one GPU — **not a new
 > model**. The weights are [poolside/Laguna-XS-2.1](https://huggingface.co/poolside/Laguna-XS-2.1)
@@ -51,7 +53,7 @@ memory-bandwidth limit, so it gains about 3–4%.
 
 ## 2026-08-12 — the long-context stack
 
-<p align="center"><img src="assets/laguna_b70_turbo.png" alt="Laguna 2.1 B70" width="46%"></p>
+
 
 A second campaign targeted serving at the model's **full 131,072-token
 window** (RL loops, long-document work). Three more env-gated kernels, tag

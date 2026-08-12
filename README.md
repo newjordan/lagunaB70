@@ -4,6 +4,11 @@
 
 Custom llama.cpp SYCL kernels, plus the measurements that back them up.
 
+> This is kernel work and a serving configuration for one GPU — **not a new
+> model**. The weights are [poolside/Laguna-XS-2.1](https://huggingface.co/poolside/Laguna-XS-2.1)
+> (Apache-2.0), unchanged. Serving package with the quant + template:
+> [Frosty40/Laguna-XS-2.1-ArcB70-GGUF](https://huggingface.co/Frosty40/Laguna-XS-2.1-ArcB70-GGUF).
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/graphs/benchmark-dark.svg">
@@ -43,6 +48,37 @@ so the data is touched once:
 
 Writing speed is where this pays off. Prompt reading was already near the card's
 memory-bandwidth limit, so it gains about 3–4%.
+
+## 2026-08-12 — the long-context stack
+
+<p align="center"><img src="assets/laguna_b70_turbo.png" alt="Laguna 2.1 B70" width="46%"></p>
+
+A second campaign targeted serving at the model's **full 131,072-token
+window** (RL loops, long-document work). Three more env-gated kernels, tag
+`lx-stack-1.4092-20260812`:
+
+| | before | after | |
+|---|---:|---:|---:|
+| Reading a real 23K-token prompt (131K window) | 307 tok/s | **1,764 tok/s** | 5.75x |
+| Writing at 23K tokens of context | 81.5 tok/s | **90 tok/s** | +10% |
+| Writing at 122K tokens of context | 36.0 tok/s | **40.8 tok/s** | +13% |
+| Writing at zero context (tg128) | 152.5 tok/s | 152.5 tok/s | held |
+
+```bash
+export GGML_SYCL_LX_REORDER_MULTICOL_MKL=1   # wide batches -> fp16/oneMKL (the 5x)
+export GGML_SYCL_LX_FATTN_PARALLEL_BLOCKS=16 # flash-attn decode split-K width
+export GGML_SYCL_LX_EXPERT_TILE_GEMM=1       # XMX fused dequant-GEMM for small expert batches
+```
+
+Where the 5x comes from: the first token generated permanently reorders the
+weights for fast decode, after which a dispatch guard was shredding every
+*prompt-reading* matmul into 8-column decode-shaped chunks. Narrowing that
+guard to decode widths recovers fast prompt reading at identical writing
+speed; a wider flash-attention split and an XMX expert-tile kernel add the
+rest. Quality-gated the same way as everything here: bit-identical with the
+kernels off, distribution-checked against a canonical fp16 reference with
+the kernels on (closer to it than the previous build), and NaN-watched over
+a 1,536-token generation at the full window.
 
 ## Three kernels stay off
 
@@ -90,4 +126,7 @@ notes/           ship note for the current kernel set
 docs/            methodology
 ```
 
-Measurement artifacts are MIT. llama.cpp and the model weights keep their own licenses.
+Measurement artifacts are MIT. Model: [poolside/Laguna-XS-2.1](https://huggingface.co/poolside/Laguna-XS-2.1)
+(Apache-2.0) — all credit for the model belongs to poolside. Runtime:
+[llama.cpp](https://github.com/ggml-org/llama.cpp) (ggml-org) with Intel
+oneAPI / XMX. Each keeps its own license.
